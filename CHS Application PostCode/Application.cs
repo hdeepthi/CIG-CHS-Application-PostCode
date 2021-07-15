@@ -40,7 +40,7 @@ namespace CIG_CHS_PLugins
                 // tracingService.Trace("Context depth > 1");
                 return;
             }
-           
+            tracingService.Trace("Context depth > 1");
 
             if (context.InputParameters.Contains("Target") && context.InputParameters["Target"] is Entity)
             {
@@ -54,14 +54,16 @@ namespace CIG_CHS_PLugins
                         if (postcode != string.Empty)
                         {
                             QueryExpression chsPostcodeQuery = new QueryExpression("cig_chspostcodes");
-                            chsPostcodeQuery.ColumnSet = new ColumnSet("cig_postcode");
+                            chsPostcodeQuery.ColumnSet = new ColumnSet("cig_postcode", "cig_council");
                             chsPostcodeQuery.Criteria.AddCondition("cig_postcode", ConditionOperator.Equal, postcode);
                             EntityCollection chsPostcodeQueryColl = service.RetrieveMultiple(chsPostcodeQuery);
                             Entity updateApplication = new Entity(application.LogicalName);
                             updateApplication.Id = appID;
-                            if (chsPostcodeQueryColl.Entities.Count > 0)
+                            if (chsPostcodeQueryColl.Entities.Count ==1)
                             {
+                                string schemename= chsPostcodeQueryColl.Entities[0].FormattedValues["cig_council"];
                                 updateApplication["cig_inscheme"] = true;
+                                updateApplication["cig_schemename"] = schemename;
                             }
                             else
                             {
@@ -72,7 +74,6 @@ namespace CIG_CHS_PLugins
                     }
                 }
             }
-
         }
     }
 }

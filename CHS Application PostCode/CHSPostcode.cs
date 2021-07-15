@@ -37,30 +37,37 @@ namespace CIG_CHS_PLugins
 
             if (context.Depth > 1)
             {
-                // tracingService.Trace("Context depth > 1");
+                tracingService.Trace("Context depth > 1");
                 return;
             }
-
+            tracingService.Trace("Target before");
             if (context.InputParameters.Contains("Target") && context.InputParameters["Target"] is Entity)
             {
+                tracingService.Trace("Target");
                 Entity chsPostcode = (Entity)context.InputParameters["Target"];
                 if (chsPostcode != null && chsPostcode.LogicalName.ToLower() == "cig_chspostcodes")
                 {
                     Guid postcodeID = chsPostcode.Id;
+                    tracingService.Trace("postcodeID " + postcodeID);
                     if (postcodeID != Guid.Empty)
                     {
                         string postcode = chsPostcode.Attributes.Contains("cig_postcode") ? chsPostcode.GetAttributeValue<string>("cig_postcode") : string.Empty;
+                        tracingService.Trace("postcode " + postcode);
                         if (postcode != string.Empty)
                         {
                             QueryExpression applicationsQuery = new QueryExpression("opportunity");
-                            applicationsQuery.ColumnSet = new ColumnSet("cig_postcode,cig_inscheme");
+                            applicationsQuery.ColumnSet = new ColumnSet("cig_postcode","cig_inscheme","name");
                             applicationsQuery.Criteria.AddCondition("cig_postcode", ConditionOperator.Equal, postcode);
                             EntityCollection applicationQueryColl = service.RetrieveMultiple(applicationsQuery);
-                            foreach(Entity application in applicationQueryColl.Entities)
+                            tracingService.Trace("applicationsQuery count  " + applicationQueryColl.Entities.Count);
+                            foreach (Entity application in applicationQueryColl.Entities)
                             {
+                                tracingService.Trace("application " + application.Id);
+                                string schemename = application.FormattedValues["cig_council"];
                                 Entity updateApplication = new Entity(application.LogicalName);
                                 updateApplication.Id = application.Id;
                                 updateApplication["cig_inscheme"] = true;
+                                updateApplication["cig_schemename"] = schemename;
                                 service.Update(updateApplication);
                             }
                           
